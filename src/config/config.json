@@ -1,0 +1,744 @@
+{
+  "version": "0.0.0",
+  "language": {
+    "name": "TypeScript",
+    "alias": "typescript",
+    "types": [
+      "string",
+      "number",
+      "boolean",
+      "object",
+      "any",
+      "unknown",
+      "null",
+      "Array",
+      "Set",
+      "Map",
+      "Date",
+      "Buffer",
+      "bigint",
+      "void"
+    ],
+    "source_path": "src"
+  },
+  "architecture": {
+    "version": "0.0.0",
+    "components": {
+      "mapper": {
+        "name_pattern": "{{pascal name}}{{pascal type}}Mapper",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/data/mappers/{{kebab name}}.{{kebab type}}.mapper.ts",
+        "element_type": "class",
+        "defaults": {
+          "common": {
+            "exp": true,
+            "methods": [
+              {
+                "name": "toEntity",
+                "params": [
+                  {
+                    "name": "model",
+                    "type": "{{USE DEPENDENCY(WHERE type.isModel IS true).type}}"
+                  }
+                ],
+                "return_type": "{{USE DEPENDENCY(WHERE type.isEntity IS true).type}}"
+              },
+              {
+                "name": "toModel",
+                "params": [
+                  {
+                    "name": "entity",
+                    "type": "{{USE DEPENDENCY(WHERE type.isEntity IS true).type}}"
+                  }
+                ],
+                "return_type": "{{USE DEPENDENCY(WHERE type.isModel IS true).type}}"
+              }
+            ]
+          },
+          "mongo": {
+            "inheritance": [
+              {
+                "name": "MongoMapper",
+                "generics": [
+                  {
+                    "dflt": "{{USE DEPENDENCY(WHERE type.isEntity IS true).element.name}}"
+                  },
+                  {
+                    "dflt": "{{USE DEPENDENCY(WHERE type.isModel IS true).element.name}}"
+                  }
+                ]
+              }
+            ],
+            "interfaces": [],
+            "imports": [
+              {
+                "list": [
+                  "MongoDB",
+                  "MongoMapper"
+                ],
+                "path": "@cole-framework/storage-mongodb"
+              }
+            ]
+          }
+        }
+      },
+      "mapper_unit_tests": {
+        "name_pattern": "{{pascal name}}{{pascal type}}MapperUnitTests",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/data/mappers/__tests__/{{kebab name}}.{{kebab type}}.mapper.unit.test.ts",
+        "element_type": "unit_tests",
+        "defaults": {}
+      },
+      "source": {
+        "name_pattern": "{{pascal name}}{{pascal type}}Source",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/data/sources/{{kebab name}}.{{kebab type}}.source.ts",
+        "element_type": "class",
+        "defaults": {
+          "common": {
+            "exp": true
+          },
+          "mongo": {
+            "ctor": {
+              "params": [
+                {
+                  "name": "dbSource",
+                  "type": "MongoSource"
+                }
+              ],
+              "supr": {
+                "params": [
+                  {
+                    "name": "dbSource",
+                    "type": "MongoSource"
+                  },
+                  {
+                    "name": "table",
+                    "type": "string",
+                    "value": "{{USE ADDONS().table}}"
+                  }
+                ]
+              }
+            },
+            "inheritance": [
+              {
+                "name": "MongoCollectionSource",
+                "generics": [
+                  {
+                    "dflt": "{{USE DEPENDENCY(WHERE type.isModel IS true).element.name}}"
+                  }
+                ]
+              }
+            ],
+            "interfaces": [],
+            "imports": [
+              {
+                "list": [
+                  "MongoSource",
+                  "MongoCollectionSource"
+                ],
+                "path": "@cole-framework/storage-mongodb"
+              }
+            ]
+          }
+        }
+      },
+      "source_unit_tests": {
+        "name_pattern": "{{pascal name}}{{pascal type}}SourceUnitTests",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/data/sources/__tests__/{{kebab name}}.{{kebab type}}.source.unit.test.ts",
+        "element_type": "unit_tests",
+        "defaults": {}
+      },
+      "entity": {
+        "name_pattern": "{{pascal name}}",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/domain/entities/{{kebab name}}.ts",
+        "element_type": "class",
+        "defaults": {
+          "common": {
+            "exp": true,
+            "inheritance": [
+              {
+                "meta": "{{IF ADDONS().hasModel IS true}}",
+                "name": "Entity",
+                "generics": [
+                  {
+                    "dflt": "{{USE DEPENDENCY(WHERE type.isModel IS true).element.name}}"
+                  }
+                ]
+              }
+            ],
+            "methods": [
+              {
+                "meta": "{{IF ADDONS().hasModel IS true}}",
+                "name": "toModel",
+                "params": [],
+                "return_type": "{{USE DEPENDENCY(WHERE type.isModel IS true).type}}"
+              }
+            ],
+            "imports": [
+              {
+                "list": [
+                  "Entity",
+                  "UnknownObject"
+                ],
+                "path": "@cole-framework/api-core"
+              }
+            ],
+            "props": [
+              {
+                "access": "public",
+                "default": "\"\"",
+                "name": "id",
+                "type": "string",
+                "optional": false
+              },
+              {
+                "access": "public",
+                "name": "rest",
+                "type": "string",
+                "optional": true
+              }
+            ]
+          }
+        }
+      },
+      "model": {
+        "name_pattern": "{{pascal name}}{{pascal type}}Model",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/data/dtos/{{kebab name}}.dto.ts",
+        "element_type": "type",
+        "defaults": {
+          "common": {
+            "exp": true
+          },
+          "mongo": {
+            "imports": [
+              {
+                "list": [
+                  "MongoDB"
+                ],
+                "path": "@cole-framework/storage-mongodb"
+              }
+            ],
+            "props": [
+              {
+                "name": "_id",
+                "type": "MongoDB.ObjectId",
+                "optional": true
+              }
+            ]
+          },
+          "json": {
+            "imports": [],
+            "props": [
+              {
+                "name": "id",
+                "type": "string",
+                "optional": true
+              }
+            ]
+          }
+        }
+      },
+      "use_case": {
+        "name_pattern": "{{pascal name}}UseCase",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/domain/use-cases/{{kebab name}}.use-case.ts",
+        "element_type": "class",
+        "defaults": {
+          "common": {
+            "exp": true,
+            "imports": [
+              {
+                "list": [
+                  "injectable",
+                  "inject",
+                  "UseCase",
+                  "Result",
+                  "Failure"
+                ],
+                "path": "@cole-framework/api-core"
+              }
+            ],
+            "methods": [
+              {
+                "name": "execute",
+                "params": "{{USE ADDONS().input TO BUILD Array<Param>}}",
+                "return_type": "{{USE ADDONS().output}}",
+                "is_async": true
+              }
+            ]
+          }
+        }
+      },
+      "use_case_unit_tests": {
+        "name_pattern": "{{pascal name}}UseCaseUnitTests",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/domain/use-cases/__tests__/{{kebab name}}.use-case.unit.test.ts",
+        "element_type": "unit_tests",
+        "defaults": {}
+      },
+      "repository": {
+        "name_pattern": "{{pascal name}}Repository",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/domain/repositories/{{kebab name}}.repository.ts",
+        "element_type": "abstract_class",
+        "defaults": {
+          "common": {
+            "exp": true,
+            "imports": [
+              {
+                "list": [
+                  "Repository",
+                  "injectable"
+                ],
+                "path": "@cole-framework/api-core"
+              }
+            ],
+            "inheritance": [
+              {
+                "name": "Repository",
+                "generics": [
+                  {
+                    "dflt": "{{USE DEPENDENCY(WHERE type.isEntity IS true).element.name}}"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "repository_impl": {
+        "name_pattern": "{{pascal name}}RepositoryImpl",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/data/repositories/{{kebab name}}.repository-impl.ts",
+        "element_type": "class",
+        "defaults": {
+          "common": {
+            "exp": true,
+            "imports": [
+              {
+                "list": [
+                  "DataContext",
+                  "Repository",
+                  "RepositoryImpl"
+                ],
+                "path": "@cole-framework/api-core"
+              }
+            ],
+            "inheritance": [
+              {
+                "name": "RepositoryImpl",
+                "generics": [
+                  {
+                    "dflt": "{{USE DEPENDENCY(WHERE type.isEntity IS true).element.name}}"
+                  },
+                  {
+                    "dflt": "{{USE DEPENDENCY(WHERE type.isModel IS true).element.name}}"
+                  }
+                ]
+              }
+            ],
+            "interfaces": [
+              {
+                "name": "{{USE DEPENDENCY(WHERE type.isRepository IS true).element.name}}"
+              }
+            ],
+            "ctor": {
+              "supr": {
+                "params": [
+                  {
+                    "name": "{{USE DEPENDENCY(WHERE type.isModel IS true).type.type}}Context",
+                    "type": "DataContext<{{USE DEPENDENCY(WHERE type.isEntity IS true).element.name}}, {{USE DEPENDENCY(WHERE type.type IS mongo).element.name}}>"
+                  }
+                ]
+              }
+            }
+          },
+          "mongo": {
+            "ctor": {
+              "params": [
+                {
+                  "name": "mongoContext",
+                  "type": "DataContext<{{USE DEPENDENCY(WHERE type.isEntity IS true).element.name}}, {{USE DEPENDENCY(WHERE type.type IS mongo).element.name}}>"
+                }
+              ]
+            }
+          },
+          "mysql": {
+            "ctor": {
+              "params": [
+                {
+                  "name": "mysqlContext",
+                  "type": "DataContext<{{USE DEPENDENCY(WHERE type.isEntity IS true).element.name}}, {{USE DEPENDENCY(WHERE type.type IS mysql).element.name}}>"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "repository_impl_unit_tests": {
+        "name_pattern": "{{pascal name}}RepositoryImpl",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/data/repositories/__tests__/{{kebab name}}.repository-impl.unit.test.ts",
+        "element_type": "unit_tests",
+        "defaults": {}
+      },
+      "repository_factory": {
+        "name_pattern": "{{pascal name}}RepositoryFactory",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/data/repositories/{{kebab name}}.repository-factory.ts",
+        "element_type": "class",
+        "defaults": {
+          "common": {
+            "exp": true,
+            "methods": [
+              {
+                "name": "create",
+                "params": [],
+                "return": null,
+                "is_async": true,
+                "access": "public",
+                "is_static": true,
+                "body": "{{TEMPLATE(repository_factory_method)}}"
+              }
+            ],
+            "imports": [
+              {
+                "list": [
+                  "RepositoryImpl",
+                  "Repository",
+                  "Container"
+                ],
+                "path": "@cole-framework/api-core"
+              }
+            ]
+          },
+          "mongo": {
+            "imports": [
+              {
+                "list": [
+                  "MongoCollectionSource",
+                  "MongoConfig",
+                  "MongoQueryBuilders",
+                  "MongoSource"
+                ],
+                "path": "@cole-framework/storage-mongodb"
+              }
+            ]
+          },
+          "mysql": {
+            "imports": [
+              {
+                "list": [
+                  "MySqlCollectionSource",
+                  "MySqlConfig",
+                  "MySqlQueryBuilders",
+                  "MySqlSource"
+                ],
+                "path": "@cole-framework/storage-mysql"
+              }
+            ]
+          }
+        }
+      },
+      "repository_factory_unit_tests": {
+        "name_pattern": "{{pascal name}}RepositoryFactoryUnitTests",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/data/repositories/__tests__/{{kebab name}}.repository-factory.unit.test.ts",
+        "element_type": "unit_tests",
+        "defaults": {}
+      },
+      "controller": {
+        "name_pattern": "{{pascal name}}Controller",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/domain/controllers/{{kebab name}}.controller.ts",
+        "element_type": "class",
+        "defaults": {
+          "common": {
+            "exp": true
+          }
+        }
+      },
+      "controller_unit_tests": {
+        "name_pattern": "{{pascal name}}ControllerUnitTests",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/domain/controllers/__tests__/{{kebab name}}.controller.unit.test.ts",
+        "element_type": "unit_tests",
+        "defaults": {}
+      },
+      "route": {
+        "name_pattern": "{{pascal method}}{{pascal name}}Route",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/routes/{{kebab method}}-{{kebab name}}.route.ts",
+        "element_type": "class",
+        "defaults": {
+          "common": {
+            "exp": true,
+            "imports": [
+              {
+                "list": [
+                  "RouteHandler"
+                ],
+                "path": "@cole-framework/api-core"
+              }
+            ],
+            "methods": [
+              {
+                "name": "create",
+                "is_static": true,
+                "params": [
+                  {
+                    "name": "handler",
+                    "type": "RouteHandler"
+                  }
+                ]
+              }
+            ],
+            "ctor": {
+              "access": "private",
+              "params": [
+                {
+                  "name": "handler",
+                  "type": "RouteHandler"
+                }
+              ],
+              "supr": {
+                "template": "route_ctor_supr",
+                "params": [
+                  {
+                    "name": "path",
+                    "type": "string",
+                    "value": "{{USE ADDONS().path}}"
+                  },
+                  {
+                    "name": "handler",
+                    "type": "RouteHandler"
+                  },
+                  {
+                    "name": "addons",
+                    "type": "RouteAddons",
+                    "value": {
+                      "io": "{{USE DEPENDENCY(WHERE type.component IS route_io).element.name}}"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "get": {
+            "imports": [
+              {
+                "list": [
+                  "GetRoute"
+                ],
+                "path": "@cole-framework/api-core"
+              }
+            ],
+            "inheritance": [
+              {
+                "name": "GetRoute"
+              }
+            ]
+          },
+          "post": {
+            "imports": [
+              {
+                "list": [
+                  "PostRoute"
+                ],
+                "path": "@cole-framework/api-core"
+              }
+            ],
+            "inheritance": [
+              {
+                "name": "PostRoute"
+              }
+            ]
+          },
+          "put": {
+            "imports": [
+              {
+                "list": [
+                  "PutRoute"
+                ],
+                "path": "@cole-framework/api-core"
+              }
+            ],
+            "inheritance": [
+              {
+                "name": "PutRoute"
+              }
+            ]
+          },
+          "patch": {
+            "imports": [
+              {
+                "list": [
+                  "PatchRoute"
+                ],
+                "path": "@cole-framework/api-core"
+              }
+            ],
+            "inheritance": [
+              {
+                "name": "PatchRoute"
+              }
+            ]
+          },
+          "delete": {
+            "imports": [
+              {
+                "list": [
+                  "DeleteRoute"
+                ],
+                "path": "@cole-framework/api-core"
+              }
+            ],
+            "inheritance": [
+              {
+                "name": "DeleteRoute"
+              }
+            ],
+            "props": []
+          }
+        }
+      },
+      "route_model": {
+        "name_pattern": "{{pascal method}}{{pascal name}}{{pascal type}}Model",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/routes/{{kebab method}}-{{kebab name}}.route-model.ts",
+        "element_type": "type",
+        "defaults": {
+          "common": {
+            "exp": true
+          }
+        }
+      },
+      "route_io": {
+        "name_pattern": "{{pascal method}}{{pascal name}}RouteIO",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/routes/{{kebab method}}-{{kebab name}}.route-io.ts",
+        "element_type": "class",
+        "defaults": {
+          "common": {
+            "exp": true,
+            "imports": [
+              {
+                "list": [
+                  "RouteIO",
+                  "Response",
+                  "Request"
+                ],
+                "path": "@cole-framework/api-core"
+              }
+            ],
+            "interfaces": [
+              {
+                "name": "RouteIO",
+                "generics": [
+                  {
+                    "dflt": "{{USE ADDONS().input.element.name}}"
+                  },
+                  {
+                    "dflt": "{{USE ADDONS().output.element.name}}"
+                  }
+                ]
+              }
+            ],
+            "methods": [
+              {
+                "name": "toResponse",
+                "return_type": "{{USE ADDONS().response.type}}",
+                "params": [
+                  {
+                    "name": "output",
+                    "type": "{{USE ADDONS().output.type}}"
+                  }
+                ]
+              },
+              {
+                "name": "fromRequest",
+                "return_type": "{{USE ADDONS().input.type}}",
+                "params": [
+                  {
+                    "name": "request",
+                    "type": "{{USE ADDONS().request.type}}"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "route_io_unit_tests": {
+        "name_pattern": "{{pascal method}}{{pascal name}}RouteIO",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/routes/__tests__/{{kebab method}}-{{kebab name}}.route-io.unit.test.ts",
+        "element_type": "unit_tests",
+        "defaults": {}
+      },
+      "toolset": {
+        "name_pattern": "{{pascal name}}Toolset",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/{{kebab layer}}/tools/{{kebab name}}.tools.ts",
+        "element_type": "class",
+        "defaults": {
+          "common": {
+            "exp": true
+          }
+        }
+      },
+      "toolset_unit_tests": {
+        "name_pattern": "{{pascal name}}ToolsetUnitTests",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/{{kebab layer}}/tools/__tests__/{{kebab name}}.tools.unit.test.ts",
+        "element_type": "unit_tests",
+        "defaults": {}
+      }
+    }
+  },
+  "databases": [
+    {
+      "name": "Cache",
+      "alias": "cache",
+      "case_style": "snake",
+      "mappings": []
+    },
+    {
+      "name": "MongoDB",
+      "alias": "mongo",
+      "case_style": "snake",
+      "mappings": [
+        {
+          "db_type": "ObjectID",
+          "code_type": "ObjectID"
+        },
+        {
+          "db_type": "Long",
+          "code_type": "bigint"
+        },
+        {
+          "db_type": "ISODate",
+          "code_type": "Date"
+        },
+        {
+          "db_type": "Timestamp",
+          "code_type": "Timestamp"
+        },
+        {
+          "db_type": "Regex",
+          "code_type": "RegExp"
+        },
+        {
+          "db_type": "Binary",
+          "code_type": "Buffer"
+        }
+      ]
+    },
+    {
+      "name": "MySQL",
+      "alias": "mysql",
+      "case_style": "snake",
+      "mappings": [
+        {
+          "db_type": "DATETIME",
+          "code_type": "Date"
+        }
+      ]
+    }
+  ],
+  "services": [
+    {
+      "name": "AWS",
+      "alias": "aws"
+    }
+  ],
+  "web_frameworks": [
+    {
+      "name": "Express.js",
+      "alias": "express"
+    }
+  ]
+}

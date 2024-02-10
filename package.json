@@ -1,0 +1,31 @@
+{
+  "name": "@cole-framework/cole-cli-typescript",
+  "version": "0.0.1",
+  "description": "",
+  "main": "build/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cole-framework/cole-cli-typescript.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cole-framework/cole-cli-typescript/issues"
+  },
+  "homepage": "https://github.com/cole-framework/cole-cli-typescript#readme",
+  "scripts": {
+    "clean": "rm -rf ./build",
+    "build": "yarn clean && tsc && node ./helpers/validate-exports.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@babel/parser": "^7.23.6",
+    "@babel/traverse": "^7.23.7",
+    "chalk": "4.1.2",
+    "prettier": "^3.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^18.14.1",
+    "typescript": "^4.5.4"
+  }
+}
