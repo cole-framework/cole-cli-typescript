@@ -1,4 +1,4 @@
-import { LanguagePluginConfig, Texts } from "@cole-framework/cole-cli-core";
+import { LanguagePluginConfig, PluginMap, Texts } from "@cole-framework/cole-cli-core";
 import {
   TypeScriptFileOutputStrategy,
   TypeScriptProjectBuildStrategy,
@@ -15,9 +15,15 @@ export const createTemplateModelStrategy = (...args: unknown[]) =>
   new TypeScriptTemplateModelStrategy();
 export const createFileOutputStrategy = (...args: unknown[]) =>
   new TypeScriptFileOutputStrategy();
-export const createProjectBuildStrategy = (texts: Texts, ...args: unknown[]) =>
-  new TypeScriptProjectBuildStrategy(texts);
-export const createProjectInitStrategy = (texts: Texts, ...args: unknown[]) =>
-  new TypeScriptProjectInitStrategy(texts);
+export const createProjectBuildStrategy = (
+  texts: Texts,
+  pluginMap: PluginMap,
+  ...args: unknown[]
+) => new TypeScriptProjectBuildStrategy(texts, pluginMap);
+export const createProjectInitStrategy = (
+  texts: Texts,
+  pluginMap: PluginMap,
+  ...args: unknown[]
+) => new TypeScriptProjectInitStrategy(texts, pluginMap);
 
 export const Config: LanguagePluginConfig = ConfigJson;

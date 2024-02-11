@@ -6,22 +6,46 @@ import {
   Result,
   ProjectDescription,
   PluginMap,
+  LanguageDI,
 } from "@cole-framework/cole-cli-core";
 import chalk from "chalk";
 import { writeFile } from "fs/promises";
 import { execAsync } from "../core";
 
+import TSconfig from "../config/tsconfig.json";
+
 export class TypeScriptProjectBuildStrategy extends Strategy {
-  constructor(private texts: Texts) {
+  constructor(
+    private texts: Texts,
+    private pluginMap: PluginMap
+  ) {
     super();
   }
 
-  async apply(
-    project: ProjectDescription,
-    pluginMap: PluginMap
-  ): Promise<Result> {
+  async installPackage(pckg) {
+    return new Promise(async (resolve, reject) => {
+      let flag;
+      let pckgName;
+
+      if (pckg.startsWith("dev:")) {
+        flag = "--save-dev";
+        pckgName = pckg.replace("dev:", "");
+      } else {
+        flag = "--save";
+        pckgName = pckg;
+      }
+
+      await execAsync(`npm install ${pckgName} ${flag}`).catch((e) => {
+        return reject(e);
+      });
+
+      return resolve(true);
+    });
+  }
+
+  async apply(project: ProjectDescription): Promise<Result> {
     try {
-      const { texts } = this;
+      const { texts, pluginMap } = this;
       const {
         name,
         database,
@@ -31,6 +55,7 @@ export class TypeScriptProjectBuildStrategy extends Strategy {
         license,
         web_framework,
         service,
+        dependency_injection,
       } = project;
       let success = true;
 
@@ -57,22 +82,58 @@ export class TypeScriptProjectBuildStrategy extends Strategy {
         success = false;
         console.log(e);
       });
-      await execAsync("npm install typescript @types/node --save-dev").catch(
-        (e) => {
+      await execAsync("npm install typescript --save").catch((e) => {
+        success = false;
+        console.log(e);
+      });
+      await execAsync("npm install @types/node --save-dev").catch((e) => {
+        success = false;
+        console.log(e);
+      });
+      const tsPlugin = pluginMap.getLanguage("typescript");
+      const { packages } = tsPlugin;
+
+      for (const pckg of packages) {
+        await this.installPackage(pckg).catch((e) => {
           success = false;
           console.log(e);
-        }
-      );
-      const { packages } = pluginMap.getLanguage("typescript");
+        });
+      }
 
-      await execAsync(`npm install ${packages.join(" ")} --save`).catch((e) => {
-        success = false;
-        console.log(e);
-      });
-      await execAsync("npx tsc --init").catch((e) => {
-        success = false;
-        console.log(e);
-      });
+      let ldi: LanguageDI;
+
+      if (dependency_injection) {
+        ldi = tsPlugin.dependency_injection.find(
+          (d) => d.alias === dependency_injection
+        );
+
+        if (Array.isArray(ldi.packages)) {
+          await ldi.packages.reduce(async (prev, p) => {
+            await prev;
+            await this.installPackage(p).catch((e) => {
+              success = false;
+              console.log(e);
+            });
+          }, Promise.resolve());
+        } else {
+          //
+        }
+      }
+
+      if (ldi) {
+        await writeFile(
+          "tsconfig.json",
+          JSON.stringify(TSconfig, null, 2)
+        ).catch((e) => {
+          success = false;
+          console.log(e);
+        });
+      } else {
+        await execAsync("npx tsc --init").catch((e) => {
+          success = false;
+          console.log(e);
+        });
+      }
 
       database.forEach(async (db) => {
         const dblc = db.toLowerCase();
@@ -80,14 +141,13 @@ export class TypeScriptProjectBuildStrategy extends Strategy {
         const pckgs = packages["typescript"];
         const plugin = plugins["typescript"];
 
-        if (pckgs.length > 0) {
-          await execAsync(`npm install ${pckgs.join(" ")} --save`).catch(
-            (e) => {
-              success = false;
-              console.log(e);
-            }
-          );
-        }
+        await pckgs.reduce(async (prev, p) => {
+          await prev;
+          await this.installPackage(p).catch((e) => {
+            success = false;
+            console.log(e);
+          });
+        }, Promise.resolve());
 
         if (plugin) {
           await execAsync(`npm install ${plugin} --save`).catch((e) => {
@@ -102,14 +162,13 @@ export class TypeScriptProjectBuildStrategy extends Strategy {
         const pckgs = framework.packages["typescript"];
         const plugin = framework.plugins["typescript"];
 
-        if (pckgs.length > 0) {
-          await execAsync(`npm install ${pckgs.join(" ")} --save`).catch(
-            (e) => {
-              success = false;
-              console.log(e);
-            }
-          );
-        }
+        await pckgs.reduce(async (prev, p) => {
+          await prev;
+          await this.installPackage(p).catch((e) => {
+            success = false;
+            console.log(e);
+          });
+        }, Promise.resolve());
 
         if (plugin) {
           await execAsync(`npm install ${plugin} --save`).catch((e) => {
@@ -124,14 +183,13 @@ export class TypeScriptProjectBuildStrategy extends Strategy {
         const pckgs = srv.packages["typescript"];
         const plugin = srv.plugins["typescript"];
 
-        if (pckgs.length > 0) {
-          await execAsync(`npm install ${pckgs.join(" ")} --save`).catch(
-            (e) => {
-              success = false;
-              console.log(e);
-            }
-          );
-        }
+        await pckgs.reduce(async (prev, p) => {
+          await prev;
+          await this.installPackage(p).catch((e) => {
+            success = false;
+            console.log(e);
+          });
+        }, Promise.resolve());
 
         if (plugin) {
           await execAsync(`npm install ${plugin} --save`).catch((e) => {
@@ -144,7 +202,7 @@ export class TypeScriptProjectBuildStrategy extends Strategy {
       if (source) {
         const srcPath = join(process.cwd(), source);
         if (existsSync(srcPath) === false) {
-          mkdirSync(dirname(srcPath), { recursive: true });
+          mkdirSync(srcPath, { recursive: true });
         }
       }
 

@@ -1,18 +1,24 @@
 import { join, dirname } from "path";
 import chalk from "chalk";
 import { existsSync, mkdirSync } from "fs";
-import { readFile } from "fs/promises";
+import { readFile, writeFile } from "fs/promises";
 import {
   Strategy,
   Texts,
   ProjectDescription,
   Result,
   PluginMap,
+  LanguageDI,
 } from "@cole-framework/cole-cli-core";
 import { execAsync } from "../core";
 
+import TSconfig from "../config/tsconfig.json";
+
 export class TypeScriptProjectInitStrategy extends Strategy {
-  constructor(private texts: Texts) {
+  constructor(
+    private texts: Texts,
+    private pluginMap: PluginMap
+  ) {
     super();
   }
 
@@ -28,13 +34,32 @@ export class TypeScriptProjectInitStrategy extends Strategy {
     return false;
   }
 
-  async apply(
-    project: ProjectDescription,
-    pluginMap: PluginMap
-  ): Promise<Result> {
+  async installPackage(pckg, dependencies) {
+    return new Promise(async (resolve, reject) => {
+      let flag;
+      let pckgName;
+
+      if (pckg.startsWith("dev:")) {
+        flag = "--save-dev";
+        pckgName = pckg.replace("dev:", "");
+      } else {
+        flag = "--save";
+        pckgName = pckg;
+      }
+      if (this.hasDependency(dependencies, pckgName) === false) {
+        await execAsync(`npm install ${pckgName} ${flag}`).catch((e) => {
+          return reject(e);
+        });
+      }
+      return resolve(true);
+    });
+  }
+
+  async apply(project: ProjectDescription): Promise<Result> {
     try {
-      const { texts } = this;
-      const { database, web_framework, service, source } = project;
+      const { texts, pluginMap } = this;
+      const { database, web_framework, service, source, dependency_injection } =
+        project;
       const packageString = await readFile("./package.json", "utf-8");
       let success = true;
 
@@ -44,7 +69,8 @@ export class TypeScriptProjectInitStrategy extends Strategy {
 
       const packageJson = JSON.parse(packageString);
       const dependencies = Object.keys(packageJson.dependencies);
-      const { plugin } = pluginMap.getLanguage("typescript");
+      const tsPlugin = pluginMap.getLanguage("typescript");
+      const { plugin } = tsPlugin;
 
       if (this.hasDependency(dependencies, plugin) === false) {
         await execAsync(`npm install ${plugin} --save`);
@@ -57,12 +83,10 @@ export class TypeScriptProjectInitStrategy extends Strategy {
         const plugin = plugins["typescript"];
 
         for (const pckg of pckgs) {
-          if (pckg && this.hasDependency(dependencies, pckg) === false) {
-            await execAsync(`npm install ${pckg} --save`).catch((e) => {
-              success = false;
-              console.log(e);
-            });
-          }
+          await this.installPackage(pckg, dependencies).catch((e) => {
+            success = false;
+            console.log(e);
+          });
         }
 
         if (plugin && this.hasDependency(dependencies, plugin) === false) {
@@ -73,17 +97,50 @@ export class TypeScriptProjectInitStrategy extends Strategy {
         }
       });
 
+      let ldi: LanguageDI;
+
+      if (dependency_injection) {
+        ldi = tsPlugin.dependency_injection.find(
+          (d) => d.alias === dependency_injection
+        );
+
+        if (Array.isArray(ldi.packages)) {
+          await ldi.packages.reduce(async (prev, p) => {
+            await prev;
+            await this.installPackage(p, dependencies).catch((e) => {
+              success = false;
+              console.log(e);
+            });
+          }, Promise.resolve());
+        } else {
+          //
+        }
+      }
+
+      if (ldi) {
+        await writeFile(
+          "tsconfig.json",
+          JSON.stringify(TSconfig, null, 2)
+        ).catch((e) => {
+          success = false;
+          console.log(e);
+        });
+      } else {
+        await execAsync("npx tsc --init").catch((e) => {
+          success = false;
+          console.log(e);
+        });
+      }
+
       if (web_framework) {
         const { packages, plugins } = pluginMap.getWebFramework(web_framework);
         const pckgs = packages["typescript"];
         const plugin = plugins["typescript"];
         for (const pckg of pckgs) {
-          if (pckg && this.hasDependency(dependencies, pckg) === false) {
-            await execAsync(`npm install ${pckg} --save`).catch((e) => {
-              success = false;
-              console.log(e);
-            });
-          }
+          await this.installPackage(pckg, dependencies).catch((e) => {
+            success = false;
+            console.log(e);
+          });
         }
 
         if (plugin && this.hasDependency(dependencies, plugin) === false) {
@@ -100,12 +157,10 @@ export class TypeScriptProjectInitStrategy extends Strategy {
         const plugin = plugins["typescript"];
 
         for (const pckg of pckgs) {
-          if (pckg && this.hasDependency(dependencies, pckg) === false) {
-            await execAsync(`npm install ${pckg} --save`).catch((e) => {
-              success = false;
-              console.log(e);
-            });
-          }
+          await this.installPackage(pckg, dependencies).catch((e) => {
+            success = false;
+            console.log(e);
+          });
         }
 
         if (plugin && this.hasDependency(dependencies, plugin) === false) {
