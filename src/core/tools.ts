@@ -1,18 +1,32 @@
 import { exec } from "child_process";
+import ora from "ora";
 
-export const execAsync = async (command: string): Promise<void> => {
+const spinner = ora();
+let isSpinning = false;
+
+const startSpinner = (message?: string) => {
+  if (!isSpinning) {
+    spinner.start(message);
+    isSpinning = true;
+  }
+};
+
+const stopSpinner = () => {
+  if (isSpinning) {
+    spinner.stop();
+    isSpinning = false;
+  }
+};
+
+export const execAsync = async (
+  command: string,
+  spinnerMessage?: string
+): Promise<void> => {
   return new Promise((resolve, reject) => {
     const process = exec(command);
-
-    process.stdout?.on("data", (data) => {
-      console.log(data.toString());
-    });
-
-    process.stderr?.on("data", (data) => {
-      console.error(data.toString());
-    });
-
-    process.on("exit", (code) => {
+    startSpinner(spinnerMessage);
+    process.on("close", (code) => {
+      stopSpinner();
       if (code === 0) {
         resolve();
       } else {

@@ -42,6 +42,49 @@ export class TypeScriptTemplateModelStrategy extends Strategy {
     }
   }
 
+  private updateIndexFiles(models: FileTemplateModel[]): FileTemplateModel[] {
+    const indexModelsByPath = new Map<string, ExportTemplateModel[]>();
+    models.forEach((model) => {
+      if (model.write_method === WriteMethod.Skip) {
+        return;
+      }
+
+      const dir = dirname(model.path);
+      const indexPath = join(dir, "index.ts");
+      let temp = join(
+        relative(dirname(indexPath), dirname(model.path)),
+        basename(model.path).replace(extname(model.path), "")
+      );
+
+      const path = temp.startsWith(".") ? temp : `./${temp}`;
+
+      let exports = indexModelsByPath.get(indexPath);
+
+      if (!exports) {
+        exports = [];
+        indexModelsByPath.set(indexPath, exports);
+      }
+
+      model.content.classes.forEach((item) => {
+        this.addExport(exports, path, item.exp);
+      });
+
+      model.content.types.forEach((item) => {
+        this.addExport(exports, path, item.exp);
+      });
+
+      model.content.functions.forEach((item) => {
+        this.addExport(exports, path, item.exp);
+      });
+    });
+
+    return Array.from(
+      indexModelsByPath,
+      ([path, exports]) =>
+        new FileTemplateModel(path, WriteMethod.Write, { exports })
+    );
+  }
+
   public apply(api: ApiObject): Result<FileTemplateModel[]> {
     try {
       const templateModels = new Map<string, FileTemplateModel>();
@@ -89,47 +132,7 @@ export class TypeScriptTemplateModelStrategy extends Strategy {
 
       const models = Array.from(templateModels, ([, value]) => value);
 
-      // create index.ts files
-      const indexModelsByPath = new Map<string, ExportTemplateModel[]>();
-      models.forEach((model) => {
-        if (model.write_method === WriteMethod.Skip) {
-          return;
-        }
-
-        const dir = dirname(model.path);
-        const indexPath = join(dir, "index.ts");
-        let temp = join(
-          relative(dirname(indexPath), dirname(model.path)),
-          basename(model.path).replace(extname(model.path), "")
-        );
-
-        const path = temp.startsWith(".") ? temp : `./${temp}`;
-
-        let exports = indexModelsByPath.get(indexPath);
-
-        if (!exports) {
-          exports = [];
-          indexModelsByPath.set(indexPath, exports);
-        }
-
-        model.content.classes.forEach((item) => {
-          this.addExport(exports, path, item.exp);
-        });
-
-        model.content.types.forEach((item) => {
-          this.addExport(exports, path, item.exp);
-        });
-
-        model.content.functions.forEach((item) => {
-          this.addExport(exports, path, item.exp);
-        });
-      });
-
-      const indexes = Array.from(
-        indexModelsByPath,
-        ([path, exports]) =>
-          new FileTemplateModel(path, WriteMethod.Write, { exports })
-      );
+      const indexes = this.updateIndexFiles(models);
 
       return Result.withContent([...indexes, ...models]);
     } catch (error) {
