@@ -592,8 +592,8 @@
         }
       },
       "route_model": {
-        "name_pattern": "{{pascal method}}{{pascal name}}{{pascal type}}Model",
-        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/routes/{{kebab method}}-{{kebab name}}.route-model.ts",
+        "name_pattern": "{{pascal name}}{{pascal type}}Model",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/routes/{{kebab name}}.route-model.ts",
         "element_type": "type",
         "defaults": {
           "common": {
@@ -602,8 +602,8 @@
         }
       },
       "route_io": {
-        "name_pattern": "{{pascal method}}{{pascal name}}RouteIO",
-        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/routes/{{kebab method}}-{{kebab name}}.route-io.ts",
+        "name_pattern": "{{pascal name}}RouteIO",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/routes/{{kebab name}}.route-io.ts",
         "element_type": "class",
         "defaults": {
           "common": {
@@ -657,8 +657,8 @@
         }
       },
       "route_io_unit_tests": {
-        "name_pattern": "{{pascal method}}{{pascal name}}RouteIO",
-        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/routes/__tests__/{{kebab method}}-{{kebab name}}.route-io.unit.test.ts",
+        "name_pattern": "{{pascal name}}RouteIO",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/routes/__tests__/{{kebab name}}.route-io.unit.test.ts",
         "element_type": "unit_tests",
         "defaults": {}
       },
