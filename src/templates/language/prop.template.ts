@@ -13,7 +13,8 @@ export class PropTemplate {
     }
 
     const _OPTIONAL_ = model.is_optional ? "?" : "";
-    const _ACCESS_ = elementType === "class" ? model.access || "public" : "";
+    const _ACCESS_ =
+      elementType === "class" ? `${model.access}` || "public" : "";
     const _READONLY_ =
       elementType === "class" && model.is_readonly ? "readonly " : "";
     const _STATIC_ =

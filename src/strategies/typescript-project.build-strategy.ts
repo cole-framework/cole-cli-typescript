@@ -15,7 +15,7 @@ import TSconfig from "../config/tsconfig.json";
 import {
   DependenciesTemplate,
   LauncherTemplate,
-  RoutesTemplate,
+  RouterTemplate,
 } from "../templates";
 import { DependenciesError } from "./errors";
 
@@ -235,7 +235,7 @@ export class TypeScriptProjectBuildStrategy extends Strategy {
         });
         await writeFile(join(srcPath, "index.ts"), launcherTemplate);
 
-        const routesTemplate = RoutesTemplate.parse({
+        const routesTemplate = RouterTemplate.parse({
           dependency_injection,
         });
         await writeFile(join(srcPath, "routes.ts"), routesTemplate);

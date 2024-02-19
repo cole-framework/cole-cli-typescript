@@ -1,3 +1,4 @@
+export * from "./body.template";
 export * from "./class.template";
 export * from "./constructor.template";
 export * from "./export.template";

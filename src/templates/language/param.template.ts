@@ -12,7 +12,8 @@ export class ParamTemplate {
       return ComponentTemplates.get(model.template)(model, options);
     }
 
-    const _ACCESS_ = model.access && !options?.skipAccess ? model.access : "";
+    const _ACCESS_ =
+      model.access && !options?.skipAccess ? `${model.access}` : "";
     const _READONLY_ = model.is_readonly ? "readonly" : "";
     const _OPTIONAL_ = model.is_optional ? "?" : "";
     const _TYPE_ = model.type && !options?.skipType ? `: ${model.type}` : "";

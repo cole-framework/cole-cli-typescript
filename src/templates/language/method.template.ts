@@ -2,6 +2,7 @@ import { MethodTemplateModel } from "@cole-framework/cole-cli-core";
 import { ComponentTemplates } from "../components";
 import { ArgumentTemplate } from "./argument.template";
 import { ParamTemplate } from "./param.template";
+import { BodyTemplate } from "./body.template";
 
 export const METHOD_TEMPLATE = `_ACCESS_ _STATIC_ _ASYNC_ _NAME_(_PARAMS_)_RETURN_TYPE_ {
   _SUPER_
@@ -19,7 +20,7 @@ export class MethodTemplate {
       return ComponentTemplates.get(model.template)(model, elementType);
     }
 
-    const _ACCESS_ = model.access || "";
+    const _ACCESS_ = `${model.access}` || "";
     const _ASYNC_ = model.is_async ? "async" : "";
     const _STATIC_ = model.is_static ? "static" : "";
     const _PARAMS_ = model.params.map((p) => ParamTemplate.parse(p)).join(", ");
@@ -66,13 +67,7 @@ export class MethodTemplate {
       }
     }
 
-    let _BODY_ = "";
-
-    if (model.body.templateName) {
-      _BODY_ = `// ${model.body.instruction}`;
-    } else if (model.body.content) {
-      _BODY_ = model.body.content;
-    }
+    const _BODY_ = BodyTemplate.parse(model.body);
 
     return METHOD_TEMPLATE.replace("_ACCESS_", _ACCESS_)
       .replace("_STATIC_", _STATIC_)

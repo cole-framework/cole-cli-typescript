@@ -12,16 +12,19 @@ import {
   TypeTemplateModel,
 } from "@cole-framework/cole-cli-core";
 import {
+  BodyTemplate,
   ClassTemplate,
   ExportTemplate,
   FunctionTemplate,
   ImportTemplate,
   InterfaceTemplate,
   MethodTemplate,
+  ParamTemplate,
   PropTemplate,
   TypeTemplate,
 } from "../templates";
 import {
+  MethodInfo,
   TypeScriptClassInfo,
   TypeScriptFileInfo,
   TypeScriptFileReader,
@@ -41,7 +44,7 @@ export class TypeScriptFileModifier {
     return this.__updated;
   }
 
-  private updateFileCode(line: number, code: string) {
+  public updateFileCode(line: number, column: number, code: string) {
     this.__updated = true;
     const lines = this.__file.rawCode.split("\n");
     lines.splice(line, 0, code);
@@ -49,12 +52,12 @@ export class TypeScriptFileModifier {
     this.__file = TypeScriptFileReader.readCode(lines.join("\n"));
   }
 
-  private addImport(model: ImportTemplateModel) {
+  public addImport(model: ImportTemplateModel) {
     const newImportCode = ImportTemplate.parse(model);
     const lastImport = this.__file.imports.at(-1);
 
     if (lastImport) {
-      this.updateFileCode(lastImport.endLine, newImportCode);
+      this.updateFileCode(lastImport.endLine, -1, newImportCode);
     } else {
       this.__updated = true;
       this.__file = TypeScriptFileReader.readCode(
@@ -63,12 +66,12 @@ export class TypeScriptFileModifier {
     }
   }
 
-  private addExport(model: ExportTemplateModel) {
+  public addExport(model: ExportTemplateModel) {
     const newExportCode = ExportTemplate.parse(model);
     const lastExport = this.__file.imports.at(-1);
 
     if (lastExport) {
-      this.updateFileCode(lastExport.endLine, newExportCode);
+      this.updateFileCode(lastExport.endLine, -1, newExportCode);
     } else {
       this.__updated = true;
       this.__file = TypeScriptFileReader.readCode(
@@ -77,7 +80,7 @@ export class TypeScriptFileModifier {
     }
   }
 
-  private addType(model: TypeTemplateModel) {
+  public addType(model: TypeTemplateModel) {
     const newTypeCode = TypeTemplate.parse(model);
     const lastType = this.__file.types.at(-1);
     const firstClass = this.__file.classes.at(0);
@@ -85,13 +88,13 @@ export class TypeScriptFileModifier {
     const firstFunction = this.__file.functions.at(-1);
 
     if (lastType) {
-      this.updateFileCode(lastType.endLine, newTypeCode);
+      this.updateFileCode(lastType.endLine, -1, newTypeCode);
     } else if (lastImport) {
-      this.updateFileCode(lastImport.endLine, newTypeCode);
+      this.updateFileCode(lastImport.endLine, -1, newTypeCode);
     } else if (firstFunction) {
-      this.updateFileCode(lastImport.startLine - 1, newTypeCode);
+      this.updateFileCode(lastImport.startLine - 1, -1, newTypeCode);
     } else if (firstClass) {
-      this.updateFileCode(firstClass.startLine - 1, newTypeCode);
+      this.updateFileCode(firstClass.startLine - 1, -1, newTypeCode);
     } else {
       this.__updated = true;
       this.__file = TypeScriptFileReader.readCode(
@@ -100,7 +103,7 @@ export class TypeScriptFileModifier {
     }
   }
 
-  private addTypeProperty(
+  public addTypeProperty(
     typeInfo: TypeScriptTypeInfo,
     model: PropTemplateModel
   ) {
@@ -114,22 +117,22 @@ export class TypeScriptFileModifier {
     }
 
     if (startLine > -1) {
-      this.updateFileCode(startLine, PropTemplate.parse(model, "type"));
+      this.updateFileCode(startLine, -1, PropTemplate.parse(model, "type"));
     }
   }
 
-  private addInterface(model: InterfaceTemplateModel) {
+  public addInterface(model: InterfaceTemplateModel) {
     const newInterfaceCode = InterfaceTemplate.parse(model);
     const lastInterface = this.__file.interfaces.at(-1);
     const firstClass = this.__file.classes.at(0);
     const lastImport = this.__file.imports.at(-1);
 
     if (lastInterface) {
-      this.updateFileCode(lastInterface.endLine, newInterfaceCode);
+      this.updateFileCode(lastInterface.endLine, -1, newInterfaceCode);
     } else if (lastImport) {
-      this.updateFileCode(lastImport.endLine, newInterfaceCode);
+      this.updateFileCode(lastImport.endLine, -1, newInterfaceCode);
     } else if (firstClass) {
-      this.updateFileCode(firstClass.startLine - 1, newInterfaceCode);
+      this.updateFileCode(firstClass.startLine - 1, -1, newInterfaceCode);
     } else {
       this.__updated = true;
       this.__file = TypeScriptFileReader.readCode(
@@ -138,7 +141,7 @@ export class TypeScriptFileModifier {
     }
   }
 
-  private addInterfaceMethod(
+  public addInterfaceMethod(
     interfaceInfo: TypeScriptInterfaceInfo,
     model: MethodTemplateModel
   ) {
@@ -154,11 +157,15 @@ export class TypeScriptFileModifier {
     }
 
     if (startLine > -1) {
-      this.updateFileCode(startLine, MethodTemplate.parse(model, "interface"));
+      this.updateFileCode(
+        startLine,
+        -1,
+        MethodTemplate.parse(model, "interface")
+      );
     }
   }
 
-  private addInterfaceProperty(
+  public addInterfaceProperty(
     interfaceInfo: TypeScriptInterfaceInfo,
     model: PropTemplateModel
   ) {
@@ -175,11 +182,15 @@ export class TypeScriptFileModifier {
     }
 
     if (startLine > -1) {
-      this.updateFileCode(startLine, PropTemplate.parse(model, "interface"));
+      this.updateFileCode(
+        startLine,
+        -1,
+        PropTemplate.parse(model, "interface")
+      );
     }
   }
 
-  private addClass(model: ClassTemplateModel) {
+  public addClass(model: ClassTemplateModel) {
     this.__updated = true;
     const newClassCode = ClassTemplate.parse(model);
     this.__file = TypeScriptFileReader.readCode(
@@ -187,7 +198,7 @@ export class TypeScriptFileModifier {
     );
   }
 
-  private addFunction(model: FunctionTemplateModel) {
+  public addFunction(model: FunctionTemplateModel) {
     this.__updated = true;
     const newFunctionCode = FunctionTemplate.parse(model);
 
@@ -196,11 +207,11 @@ export class TypeScriptFileModifier {
     const lastImport = this.__file.imports.at(-1);
 
     if (lastFunction) {
-      this.updateFileCode(lastFunction.endLine, newFunctionCode);
+      this.updateFileCode(lastFunction.endLine, -1, newFunctionCode);
     } else if (lastImport) {
-      this.updateFileCode(lastImport.endLine, newFunctionCode);
+      this.updateFileCode(lastImport.endLine, -1, newFunctionCode);
     } else if (firstClass) {
-      this.updateFileCode(firstClass.startLine - 1, newFunctionCode);
+      this.updateFileCode(firstClass.startLine - 1, -1, newFunctionCode);
     } else {
       this.__updated = true;
       this.__file = TypeScriptFileReader.readCode(
@@ -209,12 +220,59 @@ export class TypeScriptFileModifier {
     }
   }
 
-  private addClassMethod(
+  public updateClassMethod(
+    classInfo: TypeScriptClassInfo,
+    method: MethodInfo,
+    model: MethodTemplateModel
+  ) {
+    if (model.params?.length > 0) {
+      let newParamStartLine = -1;
+      let multiLine = false;
+      const highestLine = method.params.reduce((line, p) => {
+        if (p.endLine > line) {
+          if (line > -1) {
+            multiLine = true;
+          }
+          line = p.endLine;
+        }
+        return line;
+      }, -1);
+
+      if (highestLine > -1) {
+        newParamStartLine = highestLine;
+      }
+
+      const newParams = model.params.reduce((str, param) => {
+        const templ = ParamTemplate.parse(param);
+        return multiLine ? str + `\n${templ},` : str + `${templ},`;
+      }, "");
+      //TODO: WE NEED TO PROVIDE COLUMN INDEX if startLine === endLine
+      // eg.someMethod(| <----COLUMN INDEX)
+      this.updateFileCode(newParamStartLine, -1, newParams);
+    }
+
+    const newContentStartLine = method.body.endLine - 1;
+
+    if (newContentStartLine > -1) {
+      this.updateFileCode(
+        newContentStartLine,
+        -1,
+        BodyTemplate.parse(model.body)
+      );
+    }
+  }
+
+  public addClassMethod(
     classInfo: TypeScriptClassInfo,
     model: MethodTemplateModel
   ) {
     const lastEqAccessMethod = classInfo.methods
-      .filter((m) => m.accessibility === model.access)
+      .filter((m) => {
+        return (
+          m.accessibility === `${model.access}` ||
+          (!m.accessibility && model.access === "public")
+        );
+      })
       .pop();
     let startLine = -1;
 
@@ -231,6 +289,7 @@ export class TypeScriptFileModifier {
     if (startLine > -1) {
       this.updateFileCode(
         startLine,
+        -1,
         MethodTemplate.parse(
           model,
           classInfo.abstract ? "abstract_class" : "class"
@@ -239,12 +298,12 @@ export class TypeScriptFileModifier {
     }
   }
 
-  private addClassProperty(
+  public addClassProperty(
     classInfo: TypeScriptClassInfo,
     model: PropTemplateModel
   ) {
     const lastEqAccessProp = classInfo.props
-      .filter((p) => p.accessibility === model.access)
+      .filter((p) => p.accessibility === `${model.access}`)
       .pop();
     let startLine = -1;
 
@@ -257,7 +316,7 @@ export class TypeScriptFileModifier {
     }
 
     if (startLine > -1) {
-      this.updateFileCode(startLine, PropTemplate.parse(model));
+      this.updateFileCode(startLine, -1, PropTemplate.parse(model));
     }
   }
 
@@ -326,7 +385,10 @@ export class TypeScriptFileModifier {
       const clss = file.classes.find((c) => c.name === virtual.name);
       if (clss) {
         virtual.methods.forEach((item) => {
-          if (clss.methods.findIndex((m) => m.name === item.name) === -1) {
+          const vm = clss.methods.find((m) => m.name === item.name);
+          if (vm) {
+            this.updateClassMethod(clss, vm, item);
+          } else {
             this.addClassMethod(clss, item);
           }
         });
@@ -343,9 +405,12 @@ export class TypeScriptFileModifier {
         this.addClass(virtual);
       }
     });
-
     return this.__updated
-      ? new FileOutput(model.path, model.write_method, this.__file.rawCode)
+      ? this.exportFileOutput(model.path, model.write_method)
       : null;
+  }
+
+  exportFileOutput(path: string, write_method: string) {
+    return new FileOutput(path, write_method, this.__file.rawCode);
   }
 }

@@ -15,7 +15,7 @@ export class ConstructorTemplate {
       return ComponentTemplates.get(model.template)(model);
     }
 
-    const _ACCESS_ = model.access || "";
+    const _ACCESS_ = `${model.access}` || "";
     const _PARAMS_ = model.params
       .map((p) => ParamTemplate.parse(p, { skipAccess: true }))
       .join(", ");
@@ -27,7 +27,7 @@ export class ConstructorTemplate {
 
     let _BODY_ = "";
 
-    if (model.body.templateName) {
+    if (model.body.template) {
       _BODY_ = `// ${model.body.instruction}`;
     } else if (model.body.content) {
       _BODY_ = model.body.content;

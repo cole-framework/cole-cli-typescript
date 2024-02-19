@@ -33,6 +33,7 @@ export type MethodInfo = {
   static?: boolean;
   kind?: string;
   params: ParameterInfo[];
+  body: CodeBlockInfo;
 };
 
 export type TypeScriptTypeInfo = {
@@ -166,7 +167,7 @@ export const createParamInfo = (item: any): ParameterInfo => {
 
 export const createMethodInfo = (item: any): MethodInfo => {
   const mth = {
-    name: item.name,
+    name: item.key.name,
     kind: item.kind,
     startLine: item.loc.start.line,
     endLine: item.loc.end.line,
@@ -175,6 +176,10 @@ export const createMethodInfo = (item: any): MethodInfo => {
     abstract: !!item.abstract,
     optional: !!item.optional,
     params: [],
+    body: {
+      startLine: item.body.loc.start.line,
+      endLine: item.body.loc.end.line,
+    },
   };
 
   if (Array.isArray(item.params)) {
@@ -190,6 +195,9 @@ export class TypeScriptFileReader {
     const ast = parse(code, {
       sourceType: "module",
       plugins: ["typescript"],
+      strictMode: false,
+      errorRecovery: true,
+      attachComment: true,
     });
 
     traverse(ast, {

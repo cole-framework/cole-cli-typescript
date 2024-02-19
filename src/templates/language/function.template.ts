@@ -2,6 +2,7 @@ import { FunctionTemplateModel } from "@cole-framework/cole-cli-core";
 import { ComponentTemplates } from "../components";
 import { GenericTemplate } from "./generic.template";
 import { ParamTemplate } from "./param.template";
+import { BodyTemplate } from "./body.template";
 
 export const FUNCTION_TEMPLATE = `_EXPORT_ _ASYNC_ function _NAME__GENERICS_(_PARAMS_)_RETURN_TYPE_ {
   _BODY_
@@ -32,13 +33,7 @@ export class FunctionTemplate {
         ? `<${model.generics.map((p) => GenericTemplate.parse(p)).join(", ")}>`
         : "";
 
-    let _BODY_ = "";
-
-    if (model.body.templateName) {
-      _BODY_ = `// ${model.body.instruction}`;
-    } else if (model.body.content) {
-      _BODY_ = model.body.content;
-    }
+    const _BODY_ = BodyTemplate.parse(model.body);
 
     return FUNCTION_TEMPLATE.replace("_EXPORT_", _EXPORT_)
       .replace("_ASYNC_", _ASYNC_)

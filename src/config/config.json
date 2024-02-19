@@ -502,6 +502,7 @@
                     "type": "RouteHandler"
                   },
                   {
+                    "meta": "{{IF DEPENDENCY(WHERE type.component IS route_io) IS NOT NULL}}",
                     "name": "addons",
                     "type": "RouteAddons",
                     "value": {
@@ -676,6 +677,59 @@
         "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/{{kebab layer}}/tools/__tests__/{{kebab name}}.tools.unit.test.ts",
         "element_type": "unit_tests",
         "defaults": {}
+      },
+      "router": {
+        "name_pattern": "Routes",
+        "path_pattern": "{{root}}/routes.ts",
+        "element_type": "class",
+        "defaults": {
+          "common": {
+            "exp": true,
+            "inheritance": [
+              {
+                "name": "Router"
+              }
+            ],
+            "methods": [
+              {
+                "meta": "{{FLAG isConfigurator}}",
+                "name": "configure",
+                "params": [],
+                "return_type": "void"
+              }
+            ],
+            "imports": [
+              {
+                "list": [
+                  "Router"
+                ],
+                "path": "@cole-framework/api-core"
+              }
+            ]
+          }
+        }
+      },
+      "container": {
+        "name_pattern": "Dependencies",
+        "path_pattern": "{{root}}/dependencies.ts",
+        "element_type": "class",
+        "defaults": {
+          "common": {
+            "exp": true,
+            "methods": [
+              {
+                "meta": "{{FLAG isConfigurator}}",
+                "name": "configure",
+                "params": [],
+                "return_type": "void"
+              }
+            ]
+          }
+        }
+      },
+      "launcher": {
+        "name_pattern": "Launcher",
+        "path_pattern": "{{root}}/index.ts"
       }
     }
   },
