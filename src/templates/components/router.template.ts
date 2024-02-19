@@ -1,7 +1,6 @@
 import { camelCase, pascalCase } from "change-case";
 
 export const ROUTER_TEMPLATE = `
-import { Router } from "@cole-framework/cole-ts";
 __IMPORTS__
 
 export class Routes extends Router {
@@ -30,19 +29,19 @@ export class RouterTemplate {
   }
 }
 
-export const INVERSIFY_CONTAINER_GETTER = `container.get<__CONTROLER_CLASS__>(__CONTROLER_CLASS__.Token);`;
-export const SINGLETON_CONTAINER_GETTER = `Singleton.get<__CONTROLER_CLASS__>(__CONTROLER_CLASS__.Token);`;
-export const CONTROLLER_NEW_INSTANCE = `new __CONTROLER_CLASS__();`;
+export const INVERSIFY_CONTAINER_GETTER = `container.get<__CONTROLLER_CLASS__>(__CONTROLLER_CLASS__.Token)`;
+export const SINGLETON_CONTAINER_GETTER = `Singleton.get<__CONTROLLER_CLASS__>(__CONTROLLER_CLASS__.Token)`;
+export const CONTROLLER_NEW_INSTANCE = `new __CONTROLLER_CLASS__()`;
 
 export const ROUTER_ITEM_TEMPLATE = `
-    const __CONTROLER_NAME__ = __CONTAINER_GETTER__;
+    const __CONTROLLER_NAME__ = __CONTAINER_GETTER__;
     this.mount(
-     __CONTROLER_CLASS__.create(__CONTROLER_NAME__.__HANDLER_NAME__.bind(__CONTROLER_NAME__))
-    );
-`;
+     __ROUTE_CLASS__.create(__CONTROLLER_NAME__.__HANDLER_NAME__.bind(__CONTROLLER_NAME__))
+    );`;
 
 export class RouterItemTemplate {
   static parse(model: {
+    name: string;
     controller: string;
     handler: string;
     dependency_injection: string;
@@ -50,6 +49,7 @@ export class RouterItemTemplate {
   }): string {
     const __CONTROLLER_NAME__ = camelCase(model.controller);
     const __CONTROLLER_CLASS__ = pascalCase(model.controller);
+    const __ROUTE_CLASS__ = pascalCase(model.name);
     const __HANDLER_NAME__ = model.handler;
     let __CONTAINER_GETTER__;
 
@@ -62,12 +62,13 @@ export class RouterItemTemplate {
     }
 
     return ROUTER_ITEM_TEMPLATE.replace(
-      "__CONTAINER_GETTER__",
+      /__CONTAINER_GETTER__/g,
       __CONTAINER_GETTER__
     )
-      .replace("__CONTROLLER_NAME__", __CONTROLLER_NAME__)
-      .replace("__CONTROLLER_CLASS__", __CONTROLLER_CLASS__)
-      .replace("__HANDLER_NAME__", __HANDLER_NAME__)
+      .replace(/__ROUTE_CLASS__/g, __ROUTE_CLASS__)
+      .replace(/__CONTROLLER_NAME__/g, __CONTROLLER_NAME__)
+      .replace(/__CONTROLLER_CLASS__/g, __CONTROLLER_CLASS__)
+      .replace(/__HANDLER_NAME__/g, __HANDLER_NAME__)
       .replace(/[ ]+/g, " ")
       .replace(/^(\s*\n\s*)+$/gm, "\n");
   }
@@ -75,7 +76,12 @@ export class RouterItemTemplate {
 
 export class RouterItemTemplateFactory {
   static parse(model: {
-    content: { path: string; controller: string; handler: string }[];
+    content: {
+      name: string;
+      path: string;
+      controller: string;
+      handler: string;
+    }[];
     options: { dependency_injection: string; web_framework: string };
   }) {
     const { dependency_injection, web_framework } = model.options;

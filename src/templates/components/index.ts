@@ -4,7 +4,7 @@ import {
 } from "./dependencies.template";
 import { LauncherTemplate } from "./launcher.template";
 import { RouteCtorSuprTemplate } from "./route/route-ctor-supr.template";
-import { RouterItemTemplate, RouterTemplate } from "./router.template";
+import { RouterItemTemplateFactory, RouterTemplate } from "./router.template";
 
 export * from "./launcher.template";
 export * from "./dependencies.template";
@@ -27,7 +27,7 @@ export class ComponentTemplates {
       case ComponentTemplates.names.Router:
         return RouterTemplate.parse;
       case ComponentTemplates.names.RouterItem:
-        return RouterItemTemplate.parse;
+        return RouterItemTemplateFactory.parse;
       case ComponentTemplates.names.Dependencies:
         return DependenciesTemplate.parse;
       case ComponentTemplates.names.DependencyItem:

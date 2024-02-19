@@ -455,8 +455,8 @@
         "defaults": {}
       },
       "route": {
-        "name_pattern": "{{pascal method}}{{pascal name}}Route",
-        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/routes/{{kebab method}}-{{kebab name}}.route.ts",
+        "name_pattern": "{{pascal name}}Route",
+        "path_pattern": "{{root}}/endpoints/{{kebab endpoint}}/routes/{{kebab name}}.route.ts",
         "element_type": "class",
         "defaults": {
           "common": {

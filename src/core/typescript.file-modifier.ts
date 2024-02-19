@@ -225,37 +225,11 @@ export class TypeScriptFileModifier {
     method: MethodInfo,
     model: MethodTemplateModel
   ) {
-    if (model.params?.length > 0) {
-      let newParamStartLine = -1;
-      let multiLine = false;
-      const highestLine = method.params.reduce((line, p) => {
-        if (p.endLine > line) {
-          if (line > -1) {
-            multiLine = true;
-          }
-          line = p.endLine;
-        }
-        return line;
-      }, -1);
+    // TODO: update params 
 
-      if (highestLine > -1) {
-        newParamStartLine = highestLine;
-      }
-
-      const newParams = model.params.reduce((str, param) => {
-        const templ = ParamTemplate.parse(param);
-        return multiLine ? str + `\n${templ},` : str + `${templ},`;
-      }, "");
-      //TODO: WE NEED TO PROVIDE COLUMN INDEX if startLine === endLine
-      // eg.someMethod(| <----COLUMN INDEX)
-      this.updateFileCode(newParamStartLine, -1, newParams);
-    }
-
-    const newContentStartLine = method.body.endLine - 1;
-
-    if (newContentStartLine > -1) {
+    if (method.body.endLine > -1) {
       this.updateFileCode(
-        newContentStartLine,
+        method.body.endLine,
         -1,
         BodyTemplate.parse(model.body)
       );

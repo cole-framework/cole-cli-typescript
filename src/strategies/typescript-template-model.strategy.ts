@@ -79,7 +79,7 @@ export class TypeScriptTemplateModelStrategy extends Strategy {
 
       if (configureMethod) {
         configureMethod.body = BodyTemplateModel.create({
-          content: data.addons,
+          content: data.addons["routes"],
           template: ComponentTemplates.names.RouterItem,
           options: { ...project },
         });
