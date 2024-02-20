@@ -57,7 +57,7 @@ export class TypeScriptFileModifier {
     const lastImport = this.__file.imports.at(-1);
 
     if (lastImport) {
-      this.updateFileCode(lastImport.endLine, -1, newImportCode);
+      this.updateFileCode(lastImport.endLine + 1, -1, newImportCode);
     } else {
       this.__updated = true;
       this.__file = TypeScriptFileReader.readCode(
@@ -88,9 +88,9 @@ export class TypeScriptFileModifier {
     const firstFunction = this.__file.functions.at(-1);
 
     if (lastType) {
-      this.updateFileCode(lastType.endLine, -1, newTypeCode);
+      this.updateFileCode(lastType.endLine + 1, -1, newTypeCode);
     } else if (lastImport) {
-      this.updateFileCode(lastImport.endLine, -1, newTypeCode);
+      this.updateFileCode(lastImport.endLine + 1, -1, newTypeCode);
     } else if (firstFunction) {
       this.updateFileCode(lastImport.startLine - 1, -1, newTypeCode);
     } else if (firstClass) {
@@ -111,7 +111,7 @@ export class TypeScriptFileModifier {
     let startLine = -1;
 
     if (lastProp) {
-      startLine = lastProp.endLine;
+      startLine = lastProp.endLine + 1;
     } else {
       startLine = typeInfo.startLine;
     }
@@ -207,9 +207,9 @@ export class TypeScriptFileModifier {
     const lastImport = this.__file.imports.at(-1);
 
     if (lastFunction) {
-      this.updateFileCode(lastFunction.endLine, -1, newFunctionCode);
+      this.updateFileCode(lastFunction.endLine + 1, -1, newFunctionCode);
     } else if (lastImport) {
-      this.updateFileCode(lastImport.endLine, -1, newFunctionCode);
+      this.updateFileCode(lastImport.endLine + 1, -1, newFunctionCode);
     } else if (firstClass) {
       this.updateFileCode(firstClass.startLine - 1, -1, newFunctionCode);
     } else {
@@ -251,11 +251,11 @@ export class TypeScriptFileModifier {
     let startLine = -1;
 
     if (lastEqAccessMethod) {
-      startLine = lastEqAccessMethod.endLine;
+      startLine = lastEqAccessMethod.endLine + 1;
     } else if (classInfo.ctor) {
-      startLine = classInfo.ctor.endLine;
+      startLine = classInfo.ctor.endLine + 1;
     } else if (classInfo.props.length > 0) {
-      startLine = classInfo.props.at(-1).endLine;
+      startLine = classInfo.props.at(-1).endLine + 1;
     } else {
       startLine = classInfo.startLine;
     }
@@ -282,11 +282,11 @@ export class TypeScriptFileModifier {
     let startLine = -1;
 
     if (lastEqAccessProp) {
-      startLine = lastEqAccessProp.endLine;
+      startLine = lastEqAccessProp.endLine + 1;
     } else if (classInfo.ctor) {
       startLine = classInfo.ctor.startLine - 1;
     } else {
-      startLine = classInfo.startLine;
+      startLine = classInfo.startLine + 1;
     }
 
     if (startLine > -1) {

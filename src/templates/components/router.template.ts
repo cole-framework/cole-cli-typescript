@@ -51,15 +51,15 @@ export class RouterItemTemplate {
     const __CONTROLLER_CLASS__ = pascalCase(model.controller);
     const __ROUTE_CLASS__ = pascalCase(model.name);
     const __HANDLER_NAME__ = model.handler;
-    let template = ROUTER_ITEM_TEMPLATE;
+    let template = `\n${ROUTER_ITEM_TEMPLATE}`;
 
     if (!skipConrollerResolver) {
       if (model.dependency_injection === "inversify") {
-        template = `${INVERSIFY_CONTAINER_GETTER}\n${ROUTER_ITEM_TEMPLATE}`;
+        template = `\n${INVERSIFY_CONTAINER_GETTER}\n${ROUTER_ITEM_TEMPLATE}`;
       } else if (model.dependency_injection === "singleton") {
-        template = `${SINGLETON_CONTAINER_GETTER}\n${ROUTER_ITEM_TEMPLATE}`;
+        template = `\n${SINGLETON_CONTAINER_GETTER}\n${ROUTER_ITEM_TEMPLATE}`;
       } else {
-        template = `${CONTROLLER_NEW_INSTANCE}\n${ROUTER_ITEM_TEMPLATE}`;
+        template = `\n${CONTROLLER_NEW_INSTANCE}\n${ROUTER_ITEM_TEMPLATE}`;
       }
     }
     return template

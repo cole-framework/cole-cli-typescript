@@ -1,5 +1,6 @@
 import { parse } from "@babel/parser";
 import traverse from "@babel/traverse";
+import { workerLog } from "@cole-framework/cole-cli-core";
 import { readFileSync } from "fs";
 
 export type PropertyInfo = {
