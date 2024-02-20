@@ -12,6 +12,8 @@ import {
 } from "@cole-framework/cole-cli-core";
 import { basename, dirname, extname, join, relative } from "path";
 import { ComponentTemplates } from "../templates";
+import { existsSync } from "fs";
+import { TypeScriptFileInfo, TypeScriptFileReader } from "../core";
 
 export class TypeScriptTemplateModelStrategy extends Strategy {
   private updateTemplateModel(
@@ -31,9 +33,14 @@ export class TypeScriptTemplateModelStrategy extends Strategy {
     data: ComponentData,
     project: ProjectDescription
   ): FileTemplateModel {
+    let ref: TypeScriptFileInfo;
     const configurator = data.element.methods.find(
       (m) => Array.isArray(m.meta) && m.meta.includes("isConfigurator")
     );
+
+    if (existsSync(data.path)) {
+      ref = TypeScriptFileReader.readFile(data.path);
+    }
 
     const file = new FileTemplateModel(data.path, data.write_method);
     file.update(data);
@@ -47,8 +54,24 @@ export class TypeScriptTemplateModelStrategy extends Strategy {
       );
 
       if (configureMethod) {
+        let content;
+        if (ref) {
+          content = data.dependencies.reduce((acc, c) => {
+            const notImported =
+              ref.imports.findIndex(
+                (i) => i.dflt === c.type.name || i.list.includes(c.type.name)
+              ) === -1;
+            if (notImported) {
+              acc.push(c.type);
+            }
+            return acc;
+          }, []);
+        } else {
+          content = data.dependencies.map((d) => d.type);
+        }
+
         configureMethod.body = BodyTemplateModel.create({
-          content: data.dependencies.map((d) => d.type),
+          content,
           template: ComponentTemplates.names.DependencyItem,
           options: { ...project },
         });
@@ -62,9 +85,14 @@ export class TypeScriptTemplateModelStrategy extends Strategy {
     data: ComponentData,
     project: ProjectDescription
   ): FileTemplateModel {
+    let ref: TypeScriptFileInfo;
     const configurator = data.element.methods.find(
       (m) => Array.isArray(m.meta) && m.meta.includes("isConfigurator")
     );
+
+    if (existsSync(data.path)) {
+      ref = TypeScriptFileReader.readFile(data.path);
+    }
 
     const file = new FileTemplateModel(data.path, data.write_method);
     file.update(data);
@@ -78,8 +106,26 @@ export class TypeScriptTemplateModelStrategy extends Strategy {
       );
 
       if (configureMethod) {
+        let routes;
+        if (ref) {
+          routes = data.addons["routes"].map((route) => {
+            const { controller } = route;
+            const options = {};
+            const controllerImport = ref.imports.find(
+              (i) => i.dflt === controller || i.list.includes(controller)
+            );
+
+            if (controllerImport) {
+              options["skipConrollerResolver"] = true;
+            }
+            return { ...route, options };
+          });
+        } else {
+          routes = data.addons["routes"];
+        }
+
         configureMethod.body = BodyTemplateModel.create({
-          content: data.addons["routes"],
+          content: routes,
           template: ComponentTemplates.names.RouterItem,
           options: { ...project },
         });

@@ -29,42 +29,40 @@ export class RouterTemplate {
   }
 }
 
-export const INVERSIFY_CONTAINER_GETTER = `container.get<__CONTROLLER_CLASS__>(__CONTROLLER_CLASS__.Token)`;
-export const SINGLETON_CONTAINER_GETTER = `Singleton.get<__CONTROLLER_CLASS__>(__CONTROLLER_CLASS__.Token)`;
-export const CONTROLLER_NEW_INSTANCE = `new __CONTROLLER_CLASS__()`;
+export const INVERSIFY_CONTAINER_GETTER = `  const __CONTROLLER_NAME__ = container.get<__CONTROLLER_CLASS__>(__CONTROLLER_CLASS__.Token);`;
+export const SINGLETON_CONTAINER_GETTER = `  const __CONTROLLER_NAME__ = Singleton.get<__CONTROLLER_CLASS__>(__CONTROLLER_CLASS__.Token);`;
+export const CONTROLLER_NEW_INSTANCE = `const __CONTROLLER_NAME__ = new __CONTROLLER_CLASS__();`;
 
-export const ROUTER_ITEM_TEMPLATE = `
-    const __CONTROLLER_NAME__ = __CONTAINER_GETTER__;
-    this.mount(
-     __ROUTE_CLASS__.create(__CONTROLLER_NAME__.__HANDLER_NAME__.bind(__CONTROLLER_NAME__))
-    );`;
+export const ROUTER_ITEM_TEMPLATE = `  this.mount(__ROUTE_CLASS__.create(__CONTROLLER_NAME__.__HANDLER_NAME__.bind(__CONTROLLER_NAME__)));`;
 
 export class RouterItemTemplate {
   static parse(model: {
     name: string;
     controller: string;
     handler: string;
+    options: {
+      skipConrollerResolver?: boolean;
+    };
     dependency_injection: string;
     web_framework: string;
   }): string {
+    const { skipConrollerResolver } = model.options;
     const __CONTROLLER_NAME__ = camelCase(model.controller);
     const __CONTROLLER_CLASS__ = pascalCase(model.controller);
     const __ROUTE_CLASS__ = pascalCase(model.name);
     const __HANDLER_NAME__ = model.handler;
-    let __CONTAINER_GETTER__;
+    let template = ROUTER_ITEM_TEMPLATE;
 
-    if (model.dependency_injection === "inversify") {
-      __CONTAINER_GETTER__ = INVERSIFY_CONTAINER_GETTER;
-    } else if (model.dependency_injection === "singleton") {
-      __CONTAINER_GETTER__ = SINGLETON_CONTAINER_GETTER;
-    } else {
-      __CONTAINER_GETTER__ = CONTROLLER_NEW_INSTANCE;
+    if (!skipConrollerResolver) {
+      if (model.dependency_injection === "inversify") {
+        template = `${INVERSIFY_CONTAINER_GETTER}\n${ROUTER_ITEM_TEMPLATE}`;
+      } else if (model.dependency_injection === "singleton") {
+        template = `${SINGLETON_CONTAINER_GETTER}\n${ROUTER_ITEM_TEMPLATE}`;
+      } else {
+        template = `${CONTROLLER_NEW_INSTANCE}\n${ROUTER_ITEM_TEMPLATE}`;
+      }
     }
-
-    return ROUTER_ITEM_TEMPLATE.replace(
-      /__CONTAINER_GETTER__/g,
-      __CONTAINER_GETTER__
-    )
+    return template
       .replace(/__ROUTE_CLASS__/g, __ROUTE_CLASS__)
       .replace(/__CONTROLLER_NAME__/g, __CONTROLLER_NAME__)
       .replace(/__CONTROLLER_CLASS__/g, __CONTROLLER_CLASS__)
@@ -81,8 +79,12 @@ export class RouterItemTemplateFactory {
       path: string;
       controller: string;
       handler: string;
+      options: { skipConrollerResolver: boolean };
     }[];
-    options: { dependency_injection: string; web_framework: string };
+    options: {
+      dependency_injection: string;
+      web_framework: string;
+    };
   }) {
     const { dependency_injection, web_framework } = model.options;
     return model.content

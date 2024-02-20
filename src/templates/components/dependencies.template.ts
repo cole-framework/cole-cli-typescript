@@ -54,14 +54,14 @@ export class DependencyItemTemplateFactory {
             return INVERSIFY_CLASS_DEPENDENCY_TEMPLATE.replace(
               /__CLASS__/g,
               component.name
-            ).replace(/__TOKEN__/g, `${component.name}.TOKEN`);
+            ).replace(/__TOKEN__/g, `${component.name}.Token`);
           }
 
           if (model.options.dependency_injection === "singleton") {
             return SINGLETON_CLASS_DEPENDENCY_TEMPLATE.replace(
               /__CLASS__/g,
               component.name
-            ).replace(/__TOKEN__/g, `${component.name}.TOKEN`);
+            ).replace(/__TOKEN__/g, `${component.name}.Token`);
           }
         }
 

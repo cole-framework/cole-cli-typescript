@@ -1,3 +1,4 @@
+import prettier from "prettier";
 import { extname } from "path";
 import {
   ClassTemplateModel,
@@ -19,7 +20,6 @@ import {
   ImportTemplate,
   InterfaceTemplate,
   MethodTemplate,
-  ParamTemplate,
   PropTemplate,
   TypeTemplate,
 } from "../templates";
@@ -47,9 +47,9 @@ export class TypeScriptFileModifier {
   public updateFileCode(line: number, column: number, code: string) {
     this.__updated = true;
     const lines = this.__file.rawCode.split("\n");
-    lines.splice(line, 0, code);
-
-    this.__file = TypeScriptFileReader.readCode(lines.join("\n"));
+    lines.splice(line > 0 ? line - 1 : 0, 0, code);
+    const newCode = lines.join("\n");
+    this.__file = TypeScriptFileReader.readCode(newCode);
   }
 
   public addImport(model: ImportTemplateModel) {
@@ -225,7 +225,7 @@ export class TypeScriptFileModifier {
     method: MethodInfo,
     model: MethodTemplateModel
   ) {
-    // TODO: update params 
+    // TODO: update params
 
     if (method.body.endLine > -1) {
       this.updateFileCode(
@@ -294,19 +294,11 @@ export class TypeScriptFileModifier {
     }
   }
 
-  modify(model: FileTemplateModel): FileOutput {
-    const file = this.__file;
-    model.content.exports.forEach((virtual) => {
-      const ep = virtual.path.replace(extname(virtual.path), "");
-      if (file.exports.findIndex((c) => c.path === ep) === -1) {
-        this.addExport(virtual);
-      }
-    });
-
+  async modify(model: FileTemplateModel): Promise<FileOutput> {
     model.content.imports.forEach((virtual) => {
       const ep = virtual.path.replace(extname(virtual.path), "");
       if (
-        file.imports.findIndex((c) => {
+        this.__file.imports.findIndex((c) => {
           return c.path === ep;
         }) === -1
       ) {
@@ -314,8 +306,15 @@ export class TypeScriptFileModifier {
       }
     });
 
+    model.content.exports.forEach((virtual) => {
+      const ep = virtual.path.replace(extname(virtual.path), "");
+      if (this.__file.exports.findIndex((c) => c.path === ep) === -1) {
+        this.addExport(virtual);
+      }
+    });
+
     model.content.types.forEach((virtual) => {
-      const type = file.types.find((c) => c.name === virtual.name);
+      const type = this.__file.types.find((c) => c.name === virtual.name);
       if (type) {
         virtual.props.forEach((item) => {
           if (
@@ -332,7 +331,7 @@ export class TypeScriptFileModifier {
     });
 
     model.content.interfaces.forEach((virtual) => {
-      const intf = file.interfaces.find((c) => c.name === virtual.name);
+      const intf = this.__file.interfaces.find((c) => c.name === virtual.name);
       if (intf) {
         virtual.methods.forEach((item) => {
           if (intf.methods.findIndex((m) => m.name === item.name) === -1) {
@@ -350,13 +349,15 @@ export class TypeScriptFileModifier {
     });
 
     model.content.functions.forEach((virtual) => {
-      if (file.functions.findIndex((f) => f.name === virtual.name) === -1) {
+      if (
+        this.__file.functions.findIndex((f) => f.name === virtual.name) === -1
+      ) {
         this.addFunction(virtual);
       }
     });
 
     model.content.classes.forEach((virtual) => {
-      const clss = file.classes.find((c) => c.name === virtual.name);
+      const clss = this.__file.classes.find((c) => c.name === virtual.name);
       if (clss) {
         virtual.methods.forEach((item) => {
           const vm = clss.methods.find((m) => m.name === item.name);
@@ -379,12 +380,16 @@ export class TypeScriptFileModifier {
         this.addClass(virtual);
       }
     });
+
     return this.__updated
       ? this.exportFileOutput(model.path, model.write_method)
       : null;
   }
 
-  exportFileOutput(path: string, write_method: string) {
-    return new FileOutput(path, write_method, this.__file.rawCode);
+  async exportFileOutput(path: string, write_method: string) {
+    const formattedCode = await prettier.format(this.__file.rawCode, {
+      parser: "typescript",
+    });
+    return new FileOutput(path, write_method, formattedCode);
   }
 }

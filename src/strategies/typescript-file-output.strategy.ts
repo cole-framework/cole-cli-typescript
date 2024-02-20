@@ -19,7 +19,7 @@ export class TypeScriptFileOutputStrategy extends Strategy {
         if (fileOrDirExists(model.path)) {
           const file = TypeScriptFileReader.readFile(model.path);
           const modifier = new TypeScriptFileModifier(file);
-          const output = modifier.modify(model);
+          const output = await modifier.modify(model);
           if (output) {
             outputs.push(output);
           }

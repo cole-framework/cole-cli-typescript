@@ -133,7 +133,7 @@ export class TypeScriptFileInfo {
   }
 
   public get rawCode() {
-    return this.__code.replace(/[ ]+/g, " ").replace(/\n\s*\n/gm, "\n\n");
+    return this.__code;
   }
 }
 
@@ -192,7 +192,7 @@ export const createMethodInfo = (item: any): MethodInfo => {
 export class TypeScriptFileReader {
   static readCode(code: string) {
     const file = new TypeScriptFileInfo(code);
-    const ast = parse(code, {
+    const ast = parse(file.rawCode, {
       sourceType: "module",
       plugins: ["typescript"],
       strictMode: false,
